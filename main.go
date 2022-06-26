@@ -12,17 +12,15 @@ import "C"
 
 
 func main() {
+	
+	var _bin *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.bin")
+	var _cue *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.cue")
+	var _target *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.iso")
 
-	var arg0 *C.char = C.CString("bchunk")
-	var arg1 *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.bin")
-	var arg2 *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.cue")
-	var arg3 *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.iso")
-
-	var arguments [4]*C.char
-	arguments[0] = arg0
-	arguments[1] = arg1
-	arguments[2] = arg2
-	arguments[3] = arg3
+	var arguments [3]*C.char
+	arguments[0] = _bin
+	arguments[1] = _cue
+	arguments[2] = _target
 
 
 	var argLength C.int
