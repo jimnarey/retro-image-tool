@@ -107,7 +107,9 @@ int towav = 0;
 void parse_args(int argc, char *argv[])
 {
 	int s;
-	
+
+	int optind = 0;
+
 	while ((s = getopt(argc, argv, "swvp?hr")) != -1) {
 		switch (s) {
 			case 'r':
@@ -130,9 +132,13 @@ void parse_args(int argc, char *argv[])
 				fprintf(stderr, "%s", USAGE);
 				exit(0);
 		}
+		optind++;
 	}
 
-    int optind = 0;
+    printf("%s\n", "Hello")
+    printf("%s\n", optind);
+
+//    int optind = 0;
 
 	if (argc - optind != 3) {
 		fprintf(stderr, "%s", USAGE);
@@ -400,7 +406,7 @@ int _bchunk(int argc, char **argv)
 
     int i;
 	for (i = 0; i < argc; ++i) {
-	    printf("%s", argv[i]);
+	    printf("%s\n", argv[i]);
 	}
 
 	FILE *binf, *cuef;
