@@ -13,16 +13,14 @@ import "C"
 
 func main() {
 
-	var _verbose *C.char = C.CString("-v")
 	var _bin *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.bin")
 	var _cue *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.cue")
 	var _target *C.char = C.CString("/media/jimnarey/HDD_Data_B/Retro/Workdir/PS2/cd_bin_cue/Unreal Tournament/Unreal Tournament.iso")
 
-	var arguments [4]*C.char
-	arguments[0] = _verbose
-	arguments[1] = _bin
-	arguments[2] = _cue
-	arguments[3] = _target
+	var arguments [3]*C.char
+	arguments[0] = _bin
+	arguments[1] = _cue
+	arguments[2] = _target
 
 
 	var argLength C.int

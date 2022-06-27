@@ -135,7 +135,7 @@ void parse_args(int argc, char *argv[])
 		optind++;
 	}
 
-    printf("%s\n", "Hello")
+    printf("%s\n", "Hello");
     printf("%s\n", optind);
 
 //    int optind = 0;
