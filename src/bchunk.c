@@ -24,6 +24,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #define VERSION "1.2.2"
 #define USAGE "Usage: bchunk [-v] [-r] [-p (PSX)] [-w (wav)] [-s (swabaudio)]\n" \
@@ -107,16 +108,16 @@ int towav = 0;
 void parse_args(int argc, char *argv[])
 {
 	int s;
-
-	int optind = 0;
-
+	
 	while ((s = getopt(argc, argv, "swvp?hr")) != -1) {
+	    printf("%s", "INSWITCH");
 		switch (s) {
 			case 'r':
 				raw = 1;
 				break;
 			case 'v':
 				verbose = 1;
+				printf("%s", "VFOUND");
 				break;
 			case 'w':
 				towav = 1;
@@ -132,13 +133,7 @@ void parse_args(int argc, char *argv[])
 				fprintf(stderr, "%s", USAGE);
 				exit(0);
 		}
-		optind++;
 	}
-
-    printf("%s\n", "Hello");
-    printf("%s\n", optind);
-
-//    int optind = 0;
 
 	if (argc - optind != 3) {
 		fprintf(stderr, "%s", USAGE);
@@ -403,16 +398,16 @@ int _bchunk(int argc, char **argv)
 	struct track_t *track = NULL;
 	struct track_t *prevtrack = NULL;
 	struct track_t **prevp = &tracks;
+	
+	FILE *binf, *cuef;
+	
+	printf("%s", VERSTR);
 
-    int i;
+	int i;
 	for (i = 0; i < argc; ++i) {
 	    printf("%s\n", argv[i]);
 	}
 
-	FILE *binf, *cuef;
-	
-	printf("%s", VERSTR);
-	
 	parse_args(argc, argv);
 	
 	if (!((binf = fopen(binfile, "rb")))) {
