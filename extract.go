@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -14,7 +14,16 @@ import (
 	"github.com/mholt/archiver"
 )
 
-const fixturesPath string = "./fixtures"
+const FIXTURES_PATH string = "./fixtures"
+
+var ARCHIVE_GETTERS = []func(string) (archive, error){newArchiverArchive, newUnarrArchive}
+
+func mkdir(path string) error {
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return err
+	}
+	return nil
+}
 
 func isDirectory(path string) (bool, error) {
 	fileInfo, err := os.Stat(path)
@@ -43,31 +52,41 @@ type unarrArchive struct {
 	fileBase
 }
 
-func (u unarrArchive) extractAllTo(path string) error {
-	a, err := unarr.NewArchive(u.fileBase.path)
+func (a unarrArchive) extractAllTo(targetPath string) error {
+	arc, err := unarr.NewArchive(a.fileBase.path)
 	if err != nil {
 		return err
 	}
-	defer a.Close()
-	_, err = a.Extract(path)
+	defer arc.Close()
+	_, err = arc.Extract(targetPath)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u unarrArchive) basename() string {
-	return u.fileBase.basename()
+func (a unarrArchive) basename() string {
+	return a.fileBase.basename()
 }
 
 type archiverArchive struct {
 	fileBase
 }
 
-func (a archiverArchive) extractAllTo(path string) error {
-	err := archiver.Unarchive(a.fileBase.path, path)
+func (a archiverArchive) extractAllTo(targetPath string) error {
+	err := archiver.Unarchive(a.fileBase.path, targetPath)
+	if err == nil {
+		return nil
+	}
+	fmt.Println(err)
+	err = mkdir(targetPath)
 	if err != nil {
-		fmt.Println("----Error:")
+		fmt.Println(err)
+		return err
+	}
+	tarPath := path.Join(targetPath, a.fileBase.basename()+".tar")
+	err = archiver.DecompressFile(a.fileBase.path, tarPath)
+	if err != nil {
 		fmt.Println(err)
 		return err
 	}
@@ -79,11 +98,11 @@ func (a archiverArchive) basename() string {
 }
 
 func newUnarrArchive(path string) (archive, error) {
-	a, err := unarr.NewArchive(path)
+	arc, err := unarr.NewArchive(path)
 	if err != nil {
 		return nil, err
 	}
-	defer a.Close()
+	defer arc.Close()
 	return unarrArchive{fileBase: fileBase{path: path}}, nil
 }
 
@@ -92,7 +111,6 @@ func newArchiverArchive(path string) (archive, error) {
 	if err != nil {
 		return nil, err
 	}
-	//TODO Add check
 	return archiverArchive{fileBase: fileBase{path: path}}, nil
 }
 
@@ -100,7 +118,6 @@ func getArchive(path string, archiveGetters []func(string) (archive, error)) (ar
 	for i := 0; i < len(archiveGetters); i++ {
 		archive, err := archiveGetters[i](path)
 		if err == nil {
-			// fmt.Printf("%T", archive)
 			return archive, nil
 		}
 
@@ -109,11 +126,53 @@ func getArchive(path string, archiveGetters []func(string) (archive, error)) (ar
 	return nil, errors.New("No compatible unarchiver found")
 }
 
-func main() {
+func getTargetSubDir(targetPath string, arc archive) (string, error) {
 
-	archiveGetters := []func(string) (archive, error){newArchiverArchive, newUnarrArchive}
+	for i := 0; i < 100; i++ {
+		subDir := path.Join(targetPath, arc.basename()+"_"+strconv.Itoa(i))
+		if _, err := os.Stat(subDir); os.IsNotExist(err) {
+			err = mkdir(subDir)
+			if err != nil {
+				return "", err
+			}
+			return subDir, nil
+		}
+	}
+	return "", errors.New("No subdir name")
 
-	archives, err := ioutil.ReadDir(fixturesPath)
+}
+
+func ExtractArchive(archivePath string, targetPath string) error {
+	arc, err := getArchive(path.Join(archivePath), ARCHIVE_GETTERS)
+	if err != nil {
+		return err
+	}
+	targetPath, err = getTargetSubDir(targetPath, arc)
+	arc.extractAllTo(targetPath)
+	return nil
+}
+
+func findByExt(searchPath string, fileExt string) ([]string, error) {
+	tars := []string{}
+	err := filepath.Walk(searchPath, func(path_ string, info os.FileInfo, err error) error {
+		if err == nil && filepath.Ext(info.Name()) == fileExt {
+			fmt.Println("-------------")
+			fmt.Println(info.Name())
+			tars = append(tars, path.Join(path_, info.Name()))
+		}
+		return nil
+	})
+	if err != nil {
+		return []string{}, err
+	}
+	return tars, nil
+}
+
+func Run(rootPath string) {
+
+	// archiveGetters := []func(string) (archive, error){newArchiverArchive, newUnarrArchive}
+
+	archives, err := ioutil.ReadDir(rootPath)
 	if err != nil {
 		panic(err)
 	}
@@ -121,23 +180,13 @@ func main() {
 	for i := 0; i < len(archives); i++ {
 		fmt.Println("****************")
 		fmt.Println(archives[i].Name())
-		fullPath := path.Join(fixturesPath, archives[i].Name())
+		fullPath := path.Join(rootPath, archives[i].Name())
 		isDir, _ := isDirectory(fullPath)
 		if !isDir {
-			a, err := getArchive(path.Join(fullPath), archiveGetters)
+			err := ExtractArchive(fullPath, path.Join(fullPath, "out"))
 			if err != nil {
-				log.Fatal(err)
-
-			} else {
-
-				fmt.Printf("%T\n", a)
-				fmt.Println(a.basename())
-				fmt.Println(i)
-				extractPath := path.Join(fixturesPath, "out", a.basename()+"-"+strconv.Itoa(i))
-				fmt.Println(extractPath)
-				fmt.Println()
-
-				a.extractAllTo(path.Join(extractPath))
+				fmt.Println("**Extract Fail**")
+				fmt.Println(err)
 			}
 		}
 

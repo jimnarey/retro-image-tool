@@ -3,10 +3,13 @@ module github.com/jimnarey/retro-image-tool
 go 1.17
 
 require (
+	github.com/gen2brain/go-unarr v0.1.4
+	github.com/mholt/archiver v3.1.1+incompatible
+)
+
+require (
 	github.com/dsnet/compress v0.0.1 // indirect
-	github.com/gen2brain/go-unarr v0.1.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
